@@ -27,12 +27,12 @@ namespace BarbezDotEu.Extensions.Hosting
         /// </summary>
         /// <param name="serviceProvider">An instance of <see cref="IServiceProvider"/>, used to e.g. create a scope from during <see cref="DoWorkAsync"/>.</param>
         /// <param name="dueTime">
-        /// The amount of time to delay before callback is invoked, in milliseconds.
+        /// The amount of time to delay before <see cref="DoWorkAsync"/> is invoked, in milliseconds.
         /// Specify <see cref="Timeout.Infinite"/> to prevent the timer from starting.
         /// Specify zero (0) to start the timer immediately.
         /// </param>
         /// <param name="period">
-        /// The time interval between invocations of callback, in milliseconds.
+        /// The time interval between invocations of <see cref="DoWorkAsync"/>, in milliseconds.
         /// Specify <see cref="Timeout.Infinite"/> to disable periodic signaling.
         /// </param>
         public ScopedHostedService(IServiceProvider serviceProvider, TimeSpan dueTime, TimeSpan period)
@@ -64,7 +64,7 @@ namespace BarbezDotEu.Extensions.Hosting
         /// </remarks>
         /// <param name="state">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
         /// <returns>A <see cref="Task"/> representing the operation.</returns>
-        protected abstract Task DoWorkAsync(object state);
+        public abstract Task DoWorkAsync(object state);
 
         private void DoWork(object state)
         {
