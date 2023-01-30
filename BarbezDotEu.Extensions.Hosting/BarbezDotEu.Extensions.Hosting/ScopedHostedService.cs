@@ -20,7 +20,7 @@ namespace BarbezDotEu.Extensions.Hosting
         private readonly TimeSpan _dueTime;
         private readonly TimeSpan _period;
         private bool _available;
-        private Timer timer;
+        private Timer _timer;
 
         /// <summary>
         /// Constructs a <see cref="ScopedHostedService"/>.
@@ -46,24 +46,55 @@ namespace BarbezDotEu.Extensions.Hosting
         /// <inheritdoc/>
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            timer = new Timer(DoWork, cancellationToken, _dueTime, _period);
+            _timer = new Timer(DoWork, cancellationToken, _dueTime, _period);
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            timer?.Change(Timeout.Infinite, 0);
+            _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// Does the actual work. Use scope.ServiceProvider to get any services registered using 
+        /// Does the actual work. Use scope.ServiceProvider to get any 
+        /// registered scoped, transient, or singleton services.
         /// </summary>
         /// <param name="scope">An async service scope to perform the work inside of.</param>
         /// <param name="stoppingToken">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
         /// <returns>A <see cref="Task"/> representing the operation.</returns>
         protected abstract Task DoScopedWorkAsync(AsyncServiceScope scope, CancellationToken stoppingToken);
+
+        /// <summary>
+        /// Changes the start time and the interval between method invocations for a timer,
+        /// using System.TimeSpan values to measure time intervals.
+        /// </summary>
+        /// <param name="dueTime">
+        /// A System.TimeSpan representing the amount of time to delay before invoking the
+        /// callback method specified when the System.Threading.Timer was constructed. Specify 
+        /// negative one (-1) milliseconds to prevent the timer from restarting. Specify 
+        /// zero (0) to restart the timer immediately.
+        /// </param>
+        /// <param name="period">The time interval between invocations of the callback method specified when the
+        /// System.Threading.Timer was constructed. Specify negative one (-1) milliseconds
+        /// to disable periodic signaling.</param>
+        /// <returns>
+        /// True if the timer was successfully updated; otherwise, false.
+        /// </returns>
+        /// <exception cref="ObjectDisposedException">
+        ///  System.Threading.Timer has already been disposed.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// The dueTime or period parameter, in milliseconds, is less than -1.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        /// The dueTime or period parameter, in milliseconds, is greater than 4294967294.
+        /// </exception>
+        protected bool ChangeTimer(TimeSpan dueTime, TimeSpan period)
+        {
+            return this._timer.Change(dueTime, period);
+        }
 
         private async Task DoWorkAsync(object state)
         {
