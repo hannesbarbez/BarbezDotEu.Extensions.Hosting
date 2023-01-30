@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,15 +13,14 @@ namespace BarbezDotEu.Extensions.Hosting
     /// </summary>
     public abstract class ScopedHostedService : IHostedService
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly TimeSpan _dueTime;
-        private readonly TimeSpan _period;
-        private Timer timer;
-
         /// <summary>
         /// Gets an instance of <see cref="IServiceProvider"/>, used to e.g. create a scope from during <see cref="DoWorkAsync"/>.
         /// </summary>
-        protected IServiceProvider ServiceProvider => _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly TimeSpan _dueTime;
+        private readonly TimeSpan _period;
+        private bool _available;
+        private Timer timer;
 
         /// <summary>
         /// Constructs a <see cref="ScopedHostedService"/>.
@@ -40,6 +40,7 @@ namespace BarbezDotEu.Extensions.Hosting
             _serviceProvider = serviceProvider;
             _dueTime = dueTime;
             _period = period;
+            _available = true;
         }
 
         /// <inheritdoc/>
@@ -57,14 +58,27 @@ namespace BarbezDotEu.Extensions.Hosting
         }
 
         /// <summary>
-        /// Does the actual work.
+        /// Does the actual work. Use scope.ServiceProvider to get any services registered using 
         /// </summary>
-        /// <remarks>
-        /// It is recommended to first create a scope using e.g. <see cref="IServiceProvider"/>. For this, you'd need to add a dependency on e.g. <see cref="Microsoft.Extensions.DependencyInjection"/>.
-        /// </remarks>
-        /// <param name="state">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
+        /// <param name="scope">An async service scope to perform the work inside of.</param>
+        /// <param name="stoppingToken">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
         /// <returns>A <see cref="Task"/> representing the operation.</returns>
-        public abstract Task DoWorkAsync(object state);
+        protected abstract Task DoScopedWorkAsync(AsyncServiceScope scope, CancellationToken stoppingToken);
+
+        private async Task DoWorkAsync(object state)
+        {
+            if (_available)
+            {
+                _available = false;
+                var stoppingToken = (CancellationToken)state;
+                using (var scope = _serviceProvider.CreateAsyncScope())
+                {
+                    await this.DoScopedWorkAsync(scope, stoppingToken);
+                }
+
+                _available = true;
+            }
+        }
 
         private void DoWork(object state)
         {
