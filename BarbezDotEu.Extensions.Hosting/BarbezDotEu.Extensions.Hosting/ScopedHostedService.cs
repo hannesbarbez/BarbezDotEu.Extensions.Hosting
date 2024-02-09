@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace BarbezDotEu.Extensions.Hosting
 {
     /// <summary>
-    /// Base implementation of an <see cref="IHostedService"/> designed to support regular scoped execution of work inside of
+    /// Base implementation of an <see cref="IHostedService"/> designed to support regular scoped execution of work using a Timer inside of
     /// its <see cref="DoWorkAsync(object)"/>. It may benefit from better garbage collection in some applications compared to
     /// e.g. <see cref="BackgroundService"/>, which is designed for long running tasks and may enjoy less favorable garbage
     /// collection than scoped work, in some cases.
@@ -44,7 +44,7 @@ namespace BarbezDotEu.Extensions.Hosting
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             _timer = new Timer(DoWork, cancellationToken, _dueTime, _period);
-            return Task.CompletedTask;
+            return base.StartAsync(cancellationToken);
         }
 
         /// <inheritdoc/>

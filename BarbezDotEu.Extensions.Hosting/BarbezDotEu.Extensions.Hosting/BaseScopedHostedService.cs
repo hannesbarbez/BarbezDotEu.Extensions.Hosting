@@ -16,7 +16,7 @@ namespace BarbezDotEu.Extensions.Hosting
         /// <summary>
         /// Gets a value indicating whether the start process has been aborted.
         /// </summary>
-        protected CancellationToken CancellationToken { get; private set; }
+        protected virtual CancellationToken CancellationToken { get; private set; }
 
         /// <summary>
         /// Constructs a <see cref="BaseScopedHostedService"/>.
