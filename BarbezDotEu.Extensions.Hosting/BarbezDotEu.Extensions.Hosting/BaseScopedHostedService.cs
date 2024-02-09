@@ -35,6 +35,10 @@ namespace BarbezDotEu.Extensions.Hosting
         }
 
         /// <inheritdoc/>
-        public abstract Task StopAsync(CancellationToken cancellationToken);
+
+        public virtual Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

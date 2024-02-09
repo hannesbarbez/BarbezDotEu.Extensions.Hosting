@@ -51,7 +51,7 @@ namespace BarbezDotEu.Extensions.Hosting
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
-            return Task.CompletedTask;
+            return base.StopAsync(cancellationToken);
         }
 
         /// <summary>
