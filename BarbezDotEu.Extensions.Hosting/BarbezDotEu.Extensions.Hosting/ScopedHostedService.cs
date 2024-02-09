@@ -7,16 +7,13 @@ using System.Threading.Tasks;
 namespace BarbezDotEu.Extensions.Hosting
 {
     /// <summary>
-    /// Base implementation of an <see cref="IHostedService"/> designed to support scoped execution of work inside its <see cref="DoWorkAsync(object)"/>.
-    /// It may benefit from better garbage collection in some applications compared to e.g. <see cref="BackgroundService"/>,
-    /// which is designed for long running tasks and may enjoy less favorable garbage collection than scoped work, in some cases.
+    /// Base implementation of an <see cref="IHostedService"/> designed to support regular scoped execution of work inside of
+    /// its <see cref="DoWorkAsync(object)"/>. It may benefit from better garbage collection in some applications compared to
+    /// e.g. <see cref="BackgroundService"/>, which is designed for long running tasks and may enjoy less favorable garbage
+    /// collection than scoped work, in some cases.
     /// </summary>
-    public abstract class ScopedHostedService : IHostedService
+    public abstract class ScopedHostedService : BaseScopedHostedService
     {
-        /// <summary>
-        /// Gets an instance of <see cref="IServiceProvider"/>, used to e.g. create a scope from during <see cref="DoWorkAsync"/>.
-        /// </summary>
-        private readonly IServiceProvider _serviceProvider;
         private readonly TimeSpan _dueTime;
         private readonly TimeSpan _period;
         private bool _available;
@@ -36,22 +33,22 @@ namespace BarbezDotEu.Extensions.Hosting
         /// Specify <see cref="Timeout.Infinite"/> to disable periodic signaling.
         /// </param>
         public ScopedHostedService(IServiceProvider serviceProvider, TimeSpan dueTime, TimeSpan period)
+            : base(serviceProvider)
         {
-            _serviceProvider = serviceProvider;
             _dueTime = dueTime;
             _period = period;
             _available = true;
         }
 
         /// <inheritdoc/>
-        public Task StartAsync(CancellationToken cancellationToken)
+        public override Task StartAsync(CancellationToken cancellationToken)
         {
             _timer = new Timer(DoWork, cancellationToken, _dueTime, _period);
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public Task StopAsync(CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
@@ -62,9 +59,9 @@ namespace BarbezDotEu.Extensions.Hosting
         /// registered scoped, transient, or singleton services.
         /// </summary>
         /// <param name="scope">An async service scope to perform the work inside of.</param>
-        /// <param name="stoppingToken">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that indicates that this <see cref="ScopedHostedService"/> has been aborted.</param>
         /// <returns>A <see cref="Task"/> representing the operation.</returns>
-        protected abstract Task DoScopedWorkAsync(AsyncServiceScope scope, CancellationToken stoppingToken);
+        protected abstract Task DoScopedWorkAsync(AsyncServiceScope scope, CancellationToken cancellationToken);
 
         /// <summary>
         /// Changes the start time and the interval between method invocations for a timer,
@@ -102,7 +99,7 @@ namespace BarbezDotEu.Extensions.Hosting
             {
                 _available = false;
                 var stoppingToken = (CancellationToken)state;
-                using (var scope = _serviceProvider.CreateAsyncScope())
+                using (var scope = ServiceProvider.CreateAsyncScope())
                 {
                     await this.DoScopedWorkAsync(scope, stoppingToken);
                 }
