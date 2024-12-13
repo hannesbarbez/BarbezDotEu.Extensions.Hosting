@@ -14,7 +14,7 @@ namespace BarbezDotEu.Extensions.Hosting
         protected IServiceProvider ServiceProvider { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the start process has been aborted.
+        /// Gets a value indicating whether the process has been aborted.
         /// </summary>
         protected virtual CancellationToken CancellationToken { get; private set; }
 
@@ -38,6 +38,7 @@ namespace BarbezDotEu.Extensions.Hosting
 
         public virtual Task StopAsync(CancellationToken cancellationToken)
         {
+            this.CancellationToken = cancellationToken;
             return Task.CompletedTask;
         }
     }

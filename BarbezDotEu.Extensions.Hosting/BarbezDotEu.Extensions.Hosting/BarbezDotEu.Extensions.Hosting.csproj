@@ -7,10 +7,12 @@
 		<Product>BarbezDotEu.Extensions.Hosting</Product>
 		<PackageId>BarbezDotEu.Extensions.Hosting</PackageId>
 		<Copyright>©2024 Hannes Barbez</Copyright>
-		<Version>5.0.0-beta-2</Version>
+		<Version>5.0.0</Version>
 		<Description>
-			Misc. extensions to Microsoft.Extensions.Hosting, such as ScopedHostedService. ScopedHostedService is an IHostedService implementation designed to support regular scoped execution of work using a Timer.
-			It may benefit from better garbage collection in some applications compared to e.g. BackgroundService which is designed for long running tasks and may enjoy less favorable garbage collection than scoped work, in some cases.
+			Misc. extensions to Microsoft.Extensions.Hosting, such as ScopedHostedService.
+			ScopedHostedService is an IHostedService implementation designed to support regular scoped execution of work using a Timer.
+			The main benefit is a better garbage collection in some applications compared to e.g. BackgroundService (designed for long running tasks and may enjoy less favorable garbage collection than scoped work, in some cases).
+			If your app requires many iterations of smaller jobs, try using this ScopedHostedService to avoid the excessive memory consumption seen in some other implementations of IHostedService.
 		</Description>
 		<PackageTags>BackgroundService;Garbage Collection;Scope;Scoped;ScopedHostedService;Barbez;Abstract</PackageTags>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -26,7 +28,7 @@
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\ICON.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
